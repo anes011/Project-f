@@ -2,13 +2,16 @@ import { View, Text, TextInput, Dimensions, Pressable, Animated } from 'react-na
 import { AntDesign } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import CheckBox from 'expo-checkbox';
+import { useNavigation } from '@react-navigation/native';
 
 const SignScreen = () => {
+
+  const navigation = useNavigation();
 
   const { width, height } = Dimensions.get('window');
 
   const [hidePassword, setHidePassword] = useState(true);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const value = new Animated.Value(height);
 
@@ -21,7 +24,7 @@ const SignScreen = () => {
   }, []);
 
   return (
-    <View style={[{flex: 1}, {backgroundColor: 'rgb(186, 104, 200)'}]}>
+    <View style={[{flex: 1}, {backgroundColor: '#000'}]}>
       <View style={[{justifyContent: 'center'}, {alignItems: 'center'}, {marginTop: 130}, {gap: 20}]}>
         <Text style={[{fontSize: 30}, {fontWeight: 800}, {color: '#fff'}]}>Log In</Text>
         <Text style={[{fontSize: 20}, {fontWeight: 300}, {color: '#fff'}]}>Please sign in to your existing account</Text>
@@ -46,23 +49,23 @@ const SignScreen = () => {
 
         <View style={[{flexDirection: 'row'}, {justifyContent: 'space-between'}]}>
           <View style={[{flexDirection: 'row'}, {alignItems: 'center'}, {gap: 10}]}>
-            <CheckBox onValueChange={() => setRememberMe(!rememberMe)} value={rememberMe} color={rememberMe ? 'rgb(186, 104, 200)' : 'lightgray'} style={[{borderRadius: 5}, {height: 23}, {width: 23}]} />
+            <CheckBox onValueChange={() => setRememberMe(!rememberMe)} value={rememberMe} color={rememberMe ? '#000' : 'lightgray'} style={[{borderRadius: 5}, {height: 23}, {width: 23}]} />
             <Text style={[{color: 'gray'}]}>Remember me</Text>
           </View>
 
           <Pressable>
-            <Text style={[{fontWeight: 500}, {color: 'rgb(186, 104, 200)'}]}>Forgot Password</Text>
+            <Text style={[{fontWeight: 500}, {color: '#000'}]}>Forgot Password</Text>
           </Pressable>
         </View>
 
-        <Pressable style={[{backgroundColor: 'rgb(186, 104, 200)'}, {padding: 23}, {borderRadius: 15}, {justifyContent: 'center'}, {alignItems: 'center'}]}>
+        <Pressable style={[{backgroundColor: '#000'}, {padding: 23}, {borderRadius: 15}, {justifyContent: 'center'}, {alignItems: 'center'}]}>
           <Text style={[{color: '#fff'}, {fontWeight: 500}]}>LOG IN</Text>
         </Pressable>
 
         <View style={[{flexDirection: 'row'}, {alignItems: 'center'}, {justifyContent: 'center'}, {gap: 20}]}>
           <Text>Don't have an account?</Text>
-          <Pressable>
-            <Text style={[{fontWeight: 500}, {color: 'rgb(186, 104, 200)'}]}>SIGN UP</Text>
+          <Pressable onPress={() => navigation.navigate('Register')}>
+            <Text style={[{fontWeight: 500}, {color: '#000'}, {textDecorationLine: 'underline'}]}>SIGN UP</Text>
           </Pressable>
         </View>
       </Animated.View>

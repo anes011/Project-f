@@ -69,15 +69,15 @@ const IntroScreen = () => {
           )
         }
         <View style={[{flexDirection: 'row'}, {gap: 10}]}>
-          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 1 ? 'rgb(186, 104, 200)' : 'rgba(186, 104, 200, .3)'}, {borderRadius: 100 / 2}]}></View>
-          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 2 ? 'rgb(186, 104, 200)' : 'rgba(186, 104, 200, .3)'}, {borderRadius: 100 / 2}]}></View>
-          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 3 ? 'rgb(186, 104, 200)' : 'rgba(186, 104, 200, .3)'}, {borderRadius: 100 / 2}]}></View>
-          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 4 ? 'rgb(186, 104, 200)' : 'rgba(186, 104, 200, .3)'}, {borderRadius: 100 / 2}]}></View>
+          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 1 ? '#000' : 'lightgrey'}, {borderRadius: 100 / 2}]}></View>
+          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 2 ? '#000' : 'lightgrey'}, {borderRadius: 100 / 2}]}></View>
+          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 3 ? '#000' : 'lightgrey'}, {borderRadius: 100 / 2}]}></View>
+          <View style={[{height: 10}, {width: 10}, {backgroundColor: step === 4 ? '#000' : 'lightgrey'}, {borderRadius: 100 / 2}]}></View>
         </View>
       </View>
 
       <View style={[{position: 'absolute'}, {bottom: 30}, {left: 30}, {right: 30}, {gap: 30}]}>
-        <Pressable onPress={moveToNextStep} style={[{padding: 20}, {borderRadius: 10}, {backgroundColor: 'rgb(186, 104, 200)'}, {justifyContent: 'center'}, {alignItems: 'center'}]}>
+        <Pressable onPress={moveToNextStep} style={[{padding: 20}, {borderRadius: 10}, {backgroundColor: '#000'}, {justifyContent: 'center'}, {alignItems: 'center'}]}>
           <Text style={[{color: '#fff'}, {fontSize: 16}, {fontWeight: 500}]}>Next</Text>
         </Pressable>
 
