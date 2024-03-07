@@ -11,6 +11,8 @@ import IntroScreen from './Screens/IntroScreen';
 import SignScreen from './Screens/SignScreen';
 import RegisterScreen from './Screens/RegisterScreen';
 import EmailVerificationScreen from './Screens/EmailVerificationScreen';
+import AccessLocationScreen from './Screens/AccessLocationScreen';
+import ForgotPasswordScreen from './Screens/ForgotPasswordScreen';
 //
 
 const Stack = createNativeStackNavigator();
@@ -38,6 +40,8 @@ export default function App() {
             <Stack.Screen name='Sign' component={SignScreen} />
             <Stack.Screen name='Register' component={RegisterScreen} />
             <Stack.Screen name='EmailVerification' component={EmailVerificationScreen} />
+            <Stack.Screen name='AccessLocation' component={AccessLocationScreen} />
+            <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </data.Provider>

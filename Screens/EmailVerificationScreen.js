@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, addDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CELL_COUNT = 4;
 
@@ -28,6 +29,7 @@ const EmailVerificationScreen = () => {
     const [resentCode, setResentCode] = useState(false);
     const [resendError, setResendError] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
+    const [verifyLoading, setVerifyLoading] = useState(false);
 
     useEffect(() => {
         Animated.timing(bottomSheet, {
@@ -45,6 +47,8 @@ const EmailVerificationScreen = () => {
 
     const verifyCode = () => {
         if (parseInt(value) === verificationCode) {
+            setVerifyLoading(true);
+
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
                     const user = userCredential.user;
@@ -54,11 +58,24 @@ const EmailVerificationScreen = () => {
                             const docRef = await addDoc(collection(db, 'users'), {
                                 uid: user.uid,
                                 name: name,
-                                profilePhoto: 'https://firebasestorage.googleapis.com/v0/b/project-f-74ed8.appspot.com/o/user_1077114.png?alt=media&token=45cb78a9-52d8-41df-8f24-f2a04b32d62b',
+                                profilePhoto: 'https://firebasestorage.googleapis.com/v0/b/now-p-224b3.appspot.com/o/user_1077114.png?alt=media&token=d39f9694-afd2-41ec-abf7-238089666bea',
                                 phoneNumber: phoneNumber
                             });
 
-                            console.log("Document written with ID: ", docRef.id);
+                            const saveUserToAsyncStorage = async () => {
+                                try {
+                                    await AsyncStorage.setItem('user', JSON.stringify(user));
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'AccessLocation' }]
+                                    });
+                                    setVerifyLoading(false);
+                                } catch (err) {
+                                    console.error(err);
+                                }
+                            };
+
+                            saveUserToAsyncStorage();
                         } catch (err) {
                             console.error(err);
                         }
@@ -154,7 +171,13 @@ const EmailVerificationScreen = () => {
         />
         {/* //////////////////////// */}
         <Pressable onPress={verifyCode} style={[{backgroundColor: '#000'}, {padding: 23}, {borderRadius: 15}, {justifyContent: 'center'}, {alignItems: 'center'}]}>
-          <Text style={[{color: '#fff'}, {fontWeight: 500}]}>Verify</Text>
+          {
+            verifyLoading ? (
+                <ActivityIndicator size={'large'} color={'#fff'} />
+            ) : (
+                <Text style={[{color: '#fff'}, {fontWeight: 500}]}>Verify</Text>
+            )
+          }
         </Pressable>
 
         {
