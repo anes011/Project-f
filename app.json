@@ -1,5 +1,13 @@
 {
   "expo": {
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow (now) to access your location."
+        }
+      ]
+    ],
     "name": "project-f",
     "slug": "project-f",
     "version": "1.0.0",
