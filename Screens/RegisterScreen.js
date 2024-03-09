@@ -1,56 +1,35 @@
 import { View, Text, Pressable, Animated, TextInput, Dimensions, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import data from '../Context';
+import PhoneInput from 'react-native-international-phone-number';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../FirebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RegisterScreen = () => {
 
     const navigation = useNavigation();
 
-    const { name, setName, email, setEmail, password,
-    setPassword, phoneNumber, setPhoneNumber, verificationCode, 
-    setVerificationCode } = useContext(data);
-
     const { width, height } = Dimensions.get('window');
-
-    const bottomSheet = new Animated.Value(height);
-    const error = new Animated.Value(-height);
 
     const [registerLoading, setRegisterLoading] = useState(false);
 
     const [hidePassword, setHidePassword] = useState(true);
-    const [reTypePassword, setReTypePassword] = useState('');
+
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [selectedCountry, setSelectedCountry] = useState('');
 
     const [nameError, setNameError] = useState(false);
-    const [emailError, setEmailError] = useState(false);
-    const [passwordError, setPasswordError] = useState(false);
     const [phoneNumberError, setPhoneNumberError] = useState(false);
-    const [sendCodeError, setSendCodeError] = useState(false);
+    const [signError, setSignError] = useState('');
 
     const nameRegex = /^(?:[a-zA-Z].*){4,}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^(?=.*[a-zA-Z]).{8,}$/;
-    const phoneNumberRegex = /^\d{10,}$/;
-
-    useEffect(() => {
-        Animated.timing(bottomSheet, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true
-        }).start();
-    }, []);
-
-    useEffect(() => {
-        if (nameError || emailError || passwordError || phoneNumberError) {
-            Animated.timing(error, {
-                toValue: 0,
-                duration: 500,
-                useNativeDriver: true
-            }).start();
-        };
-    }, [nameError, emailError, passwordError, phoneNumberError]);
 
     const register = () => {
         if (!nameRegex.test(name)) {
@@ -59,19 +38,7 @@ const RegisterScreen = () => {
             setTimeout(() => {
                 setNameError(false);
             }, 2000);
-        } else if (!emailRegex.test(email)) {
-            setEmailError(true);
-
-            setTimeout(() => {
-                setEmailError(false);
-            }, 2000);
-        } else if (!passwordRegex.test(password)) {
-            setPasswordError(true);
-
-            setTimeout(() => {
-                setPasswordError(false);
-            }, 2000);
-        } else if (!phoneNumberRegex.test(phoneNumber)) {
+        } else if (phoneNumber === '') {
             setPhoneNumberError(true);
 
             setTimeout(() => {
@@ -79,37 +46,46 @@ const RegisterScreen = () => {
             }, 2000);
         } else {
             setRegisterLoading(true);
-            const generatedCode = Math.floor(Math.random() * 9000 + 1000);
-            setVerificationCode(generatedCode);
 
-            const sendCode = async () => {
-                try {
-                    const response = await fetch('http://192.168.1.2:4000/emailVerification', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            userEmail: email,
-                            code: generatedCode
-                        })
-                    });
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
 
-                    const data = await response.json();
+                    (async () => {
+                        try {
+                            await addDoc(collection(db, 'users'), {
+                                uid: user.uid,
+                                name: name,
+                                profilePhoto: 'https://firebasestorage.googleapis.com/v0/b/now-p-224b3.appspot.com/o/user_1077114.png?alt=media&token=d39f9694-afd2-41ec-abf7-238089666bea',
+                                phoneNumber: `${selectedCountry.callingCode}${phoneNumber}`
+                            });
 
-                    if (data.Success) {
-                        navigation.navigate('EmailVerification');
-                        setRegisterLoading(false);
-                    } else {
-                        setSendCodeError(true);
-                        setRegisterLoading(false);
-                    };
-                } catch (err) {
+                            (async () => {
+                                try {
+                                    await AsyncStorage.setItem('user', JSON.stringify(user));
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'AccessLocation' }]
+                                    });
+                                    setRegisterLoading(false);
+                                } catch (err) {
+                                    console.error(err);
+                                }
+                            })();
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    })();
+                })
+                .catch((err) => {
                     console.error(err);
-                }
-            };
+                    setRegisterLoading(false);
+                    setSignError(err.code);
 
-            sendCode();
+                    setTimeout(() => {
+                        setSignError('');
+                    }, 2000);
+                })
         }
     };
 
@@ -126,51 +102,33 @@ const RegisterScreen = () => {
 
         {
             nameError && (
-                <Animated.View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: '#fff'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {transform: [{translateY: error}]}, {zIndex: 1000}]}>
-                    <AntDesign name="close" size={24} color="red" />
-                    <Text style={[{color: 'red'}]}>The name must be at least 4 letters!</Text>
-                </Animated.View>
-            )
-        }
-
-        {
-            emailError && (
-                <Animated.View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: '#fff'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {transform: [{translateY: error}]}, {zIndex: 1000}]}>
-                    <AntDesign name="close" size={24} color="red" />
-                    <Text style={[{color: 'red'}]}>Please provide a valid email!</Text>
-                </Animated.View>
-            )
-        }
-
-        {
-            passwordError && (
-                <Animated.View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: '#fff'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {transform: [{translateY: error}]}, {zIndex: 1000}]}>
-                    <AntDesign name="close" size={24} color="red" />
-                    <Text style={[{color: 'red'}]}>The password must be at least 8 characters, and should include at least one letter!</Text>
-                </Animated.View>
+                <View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: 'red'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {zIndex: 1000}]}>
+                    <AntDesign name="close" size={24} color="#fff" />
+                    <Text style={[{color: '#fff'}]}>The name must be at least 4 letters!</Text>
+                </View>
             )
         }
 
         {
             phoneNumberError && (
-                <Animated.View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: '#fff'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {transform: [{translateY: error}]}, {zIndex: 1000}]}>
-                    <AntDesign name="close" size={24} color="red" />
-                    <Text style={[{color: 'red'}]}>Please provide a valid phone number!</Text>
-                </Animated.View>
+                <View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: 'red'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {zIndex: 1000}]}>
+                    <AntDesign name="close" size={24} color="#fff" />
+                    <Text style={[{color: '#fff'}]}>Please provide a valid phone number!</Text>
+                </View>
             )
         }
 
         {
-            sendCodeError && (
-                <Animated.View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: '#fff'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {transform: [{translateY: error}]}, {zIndex: 1000}]}>
-                    <AntDesign name="close" size={24} color="red" />
-                    <Text style={[{color: 'red'}]}>We couldn't send you the code, please try again later!</Text>
-                </Animated.View>
+            signError !== '' && (
+                <View style={[{padding: 20}, {gap: 10}, {position: 'absolute'}, {backgroundColor: 'red'}, {borderRadius: 10}, {alignSelf: 'center'}, {top: 100}, {alignItems: 'center'}, {zIndex: 1000}]}>
+                    <AntDesign name="close" size={24} color="#fff" />
+                    <Text style={[{color: '#fff'}]}>{signError}</Text>
+                </View>
             )
         }
 
         {/* Bottom sheet */}
-      <Animated.View style={[{position: 'absolute'}, {bottom: 0}, {left: 0}, {right: 0}, {borderTopRightRadius: 50}, {borderTopLeftRadius: 50}, {backgroundColor: '#fff'}, {padding: 40}, {gap: 30}, {transform: [{translateY: bottomSheet}]}]}>
+      <View style={[{position: 'absolute'}, {bottom: 0}, {left: 0}, {right: 0}, {borderTopRightRadius: 50}, {borderTopLeftRadius: 50}, {backgroundColor: '#fff'}, {padding: 40}, {gap: 30}]}>
         <View style={[{gap: 10}]}>
           <Text style={[{fontSize: 16}]}>Name</Text>
           <TextInput value={name} onChangeText={(text) => setName(text)} style={[{height: height / 13}, {borderRadius: 10}, {backgroundColor: 'lightgray'}, {fontSize: 16}, {paddingLeft: 30}]} placeholder='Jhon doe' />
@@ -190,10 +148,50 @@ const RegisterScreen = () => {
             </Pressable>
           </View>
         </View>
-        
+
         <View style={[{gap: 10}]}>
-          <Text style={[{fontSize: 16}]}>Phone Number</Text>
-          <TextInput value={phoneNumber} onChangeText={(text) => setPhoneNumber(text)} style={[{height: height / 13}, {borderRadius: 10}, {backgroundColor: 'lightgray'}, {fontSize: 16}, {paddingLeft: 30}]} placeholder='your phone number...' keyboardType='numeric' />
+            <Text style={[{fontSize: 16}]}>Phone Number</Text>
+            <PhoneInput
+                placeholder='your phone number'
+                defaultCountry='DZ'
+                excludedCountries={['IL']}
+                value={phoneNumber}
+                onChangePhoneNumber={(number) => setPhoneNumber(number)}
+                selectedCountry={selectedCountry}
+                onChangeSelectedCountry={(country) => setSelectedCountry(country)}
+                phoneInputStyles={{
+                    container: {
+                        height: height / 13,
+                        borderWidth: 0
+                    },
+                    flagContainer: {
+                        backgroundColor: '#fff',
+                        borderBottomWidth: 2
+                    },
+                    divider: {
+                        width: 2,
+                        height: 25
+                    }
+                }}
+
+                modalStyles={{
+                    modal: {
+                        borderTopLeftRadius: 50,
+                        borderTopRightRadius: 50,
+                        overflow: 'hidden',
+                        padding: 20
+                    },
+                    searchInput: {
+                        height: height / 13
+                    },
+                    countryButton: {
+                        height: height / 13,
+                        borderWidth: 0,
+                        backgroundColor: 'rgba(0, 0, 0, .1)',
+                        marginBottom: 20
+                    }
+                }}
+            />
         </View>
 
         <Pressable onPress={register} style={[{backgroundColor: '#000'}, {padding: 23}, {borderRadius: 15}, {justifyContent: 'center'}, {alignItems: 'center'}]}>
@@ -205,7 +203,7 @@ const RegisterScreen = () => {
             )
           }
         </Pressable>
-      </Animated.View>
+      </View>
       {/* //////////// */}
     </View>
   )
