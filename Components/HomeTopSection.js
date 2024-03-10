@@ -139,7 +139,7 @@ const HomeTopSection = () => {
 
                     {
                         userLocation !== '' && (
-                            <MapView customMapStyle={mapStyle} showsUserLocation legalLabelInsets={{ bottom: -100, right: -100 }} style={[{flex: 1}]} region={{latitude: parseFloat(userLocation.coords.latitude), longitude: parseFloat(userLocation.coords.longitude), latitudeDelta: 0.005, longitudeDelta: 0.005}}></MapView>
+                            <MapView customMapStyle={mapStyle} showsUserLocation legalLabelInsets={{ bottom: -100, right: -100 }} style={[{flex: 1}]} region={{latitude: parseFloat(userLocation.coords.latitude), longitude: parseFloat(userLocation.coords.longitude), latitudeDelta: 0.100, longitudeDelta: 0.100}}></MapView>
                         )
                     }
                 </View>
